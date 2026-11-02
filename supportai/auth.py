@@ -165,7 +165,9 @@ class AuthManager:
                     connection.execute("ALTER TABLE oidc_logins ADD COLUMN browser_hash TEXT NOT NULL DEFAULT ''")
             connection.execute("DELETE FROM auth_sessions WHERE expires_at <= ?", (int(time.time()),))
             # Revoke pre-account demo sessions so old role-toggle cookies cannot bypass login.
-            connection.execute("DELETE FROM auth_sessions WHERE subject LIKE 'local-demo:%'")
+            # Psycopg treats percent signs as placeholder markers, even when
+            # this statement has no bound values. Escape the LIKE wildcard.
+            connection.execute("DELETE FROM auth_sessions WHERE subject LIKE 'local-demo:%%'")
             connection.execute("DELETE FROM oidc_logins WHERE expires_at <= ?", (int(time.time()),))
 
     @staticmethod
