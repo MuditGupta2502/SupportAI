@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SupportAI | Ticket Desk</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #172033; background: #f4f6fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { background: #172033; color: white; padding: 22px max(24px, calc((100vw - 1080px) / 2)); }
+    header h1 { margin: 0; font-size: 22px; }
+    header p { margin: 5px 0 0; color: #c4ccda; font-size: 14px; }
+    main { max-width: 1180px; margin: 28px auto; padding: 0 20px; display: grid; gap: 20px; grid-template-columns: 340px 1fr; }
+    .wide { grid-column: 1 / -1; }
+    .domain-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .domain-card { text-align: left; background: white; color: #172033; border: 1px solid #dfe5ef; padding: 14px; min-height: 116px; }
+    .domain-card:hover, .domain-card.active { background: #eef2ff; border-color: #3157d5; }
+    .domain-card strong, .domain-card span { display: block; }
+    .domain-card span { margin-top: 6px; font-size: 12px; font-weight: 400; color: #657087; line-height: 1.4; }
+    .domain-card .count { color: #3157d5; font-weight: 700; }
+    .queue-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .queue-toolbar select { border:1px solid #cbd3df; border-radius:7px; padding:9px; font:inherit; }
+    .queue-filters { display:grid; grid-template-columns:minmax(180px, 1fr) auto auto auto; gap:8px; margin-top:14px; }
+    .queue-filters input, .queue-filters select { border:1px solid #cbd3df; border-radius:7px; padding:9px; font:inherit; }
+    #domain-workspace { margin: 16px 0; padding: 14px; border-radius: 8px; background: #f4f6fa; }
+    #domain-workspace p, #domain-workspace li { font-size: 13px; line-height: 1.45; }
+    #domain-workspace h3 { margin: 0 0 8px; }
+    section { background: white; border: 1px solid #e0e5ed; border-radius: 12px; padding: 20px; box-shadow: 0 3px 12px #1b2a4410; }
+    h2 { margin: 0 0 16px; font-size: 17px; }
+    label { display: block; margin: 14px 0 6px; font-size: 13px; font-weight: 650; }
+    input, textarea { width: 100%; border: 1px solid #cbd3df; border-radius: 7px; padding: 10px; font: inherit; }
+    textarea { min-height: 120px; resize: vertical; }
+    button { border: 0; border-radius: 7px; padding: 10px 13px; background: #3157d5; color: white; font: inherit; font-weight: 650; cursor: pointer; }
+    button:hover { background: #2445b3; }
+    button.secondary { background: #e9eef9; color: #233c85; }
+    .form-button { width: 100%; margin-top: 16px; }
+    .triage-review-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+    .triage-review-form label { margin: 0; font-size: 12px; }
+    .triage-review-form input, .triage-review-form select { margin-top: 4px; padding: 8px; font-size: 13px; }
+    .triage-review-form input[name="note"] { grid-column: 1 / -1; }
+    .triage-review-form button { justify-self: start; }
+    .status-form { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:8px 0; }
+    .status-form select { border:1px solid #cbd3df; border-radius:7px; padding:8px; font:inherit; }
+    .status-comment, .reply-comment { min-width:180px; flex:1; padding:8px; border:1px solid #cbd3df; border-radius:7px; font:inherit; }
+    .conversation { margin:12px 0; padding:10px; background:#f7f8fb; border-radius:8px; }
+    .conversation-entry { border-top:1px solid #e4e8ef; padding:8px 0; white-space:pre-wrap; }
+    .conversation-entry:first-of-type { border-top:0; }
+    .conversation-form { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 14px; }
+    .conversation-form select { padding:8px; border:1px solid #cbd3df; border-radius:7px; font:inherit; }
+    .ticket { border-top: 1px solid #e8ebf1; padding: 14px 0; }
+    .ticket:first-of-type { border-top: 0; padding-top: 0; }
+    .ticket-title { font-weight: 700; }
+    .ticket-message { margin: 5px 0 10px; color: #465168; font-size: 14px; white-space: pre-wrap; }
+    .meta { color: #657087; font-size: 12px; margin: 5px 0 10px; }
+    .badge { display: inline-block; background: #eef2ff; color: #344e9a; border-radius: 99px; padding: 3px 8px; margin-right: 5px; }
+    .error { color: #a52b2b; font-size: 13px; margin-top: 12px; }
+    .empty { color: #657087; font-size: 14px; }
+    #plan { display: none; margin-top: 20px; border-top: 1px solid #e8ebf1; padding-top: 18px; }
+    #plan h3 { margin: 0 0 10px; font-size: 16px; }
+    #plan p, #plan li { font-size: 14px; line-height: 1.5; }
+    #plan li { margin: 5px 0; }
+    .feedback { margin-top: 16px; padding: 12px; border-radius: 8px; background: #f4f6fa; }
+    .feedback h3 { margin: 0 0 6px; font-size: 14px; }
+    .feedback p { margin: 4px 0; font-size: 13px; line-height: 1.45; }
+    .draft-editor { width: 100%; min-height: 110px; margin: 0 0 12px; }
+    .draft { background: #fff8df; border: 1px solid #f0df9e; border-radius: 8px; padding: 12px; white-space: pre-wrap; font-size: 14px; line-height: 1.5; }
+    @media (max-width: 900px) { .domain-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 760px) { main { grid-template-columns: 1fr; } .wide { grid-column: auto; } .domain-grid { grid-template-columns: 1fr; } .queue-filters { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SupportAI <span style="font-weight:400">Ticket Desk</span></h1>
+    <p id="header-subtitle">One support workspace across food delivery, edtech, ecommerce, and healthcare.</p>
+    <div id="session-controls" hidden style="display:flex;align-items:center;gap:12px;margin-top:12px">
+      <span id="signed-in-user"></span><button id="logout" class="secondary" type="button">Sign out</button>
+    </div>
+  </header>
+  <section id="auth-gate" hidden style="max-width:520px;margin:48px auto">
+    <h2>Sign in to SupportAI</h2>
+    <p id="auth-description">Use your organization account to continue.</p>
+    <p class="meta">Public portfolio demo: use test data and avoid real medical, payment, password, or other sensitive information. Signup email is not verified and password recovery is not available.</p>
+    <a id="sso-login" href="/auth/login" hidden><button type="button">Continue with company SSO</button></a>
+    <div id="local-auth" hidden>
+      <div style="display:flex;gap:8px;margin:16px 0">
+        <button id="show-customer-login" type="button">Customer login</button>
+        <button id="show-admin-login" type="button" class="secondary">Admin login</button>
+      </div>
+      <form id="customer-login-form">
+        <label for="customer-login-email">Email</label>
+        <input id="customer-login-email" name="email" type="email" autocomplete="username" required maxlength="254">
+        <label for="customer-login-password">Password</label>
+        <input id="customer-login-password" name="password" type="password" autocomplete="current-password" required maxlength="256">
+        <button class="form-button" type="submit">Sign in as customer</button>
+        <button id="show-signup" class="secondary" type="button" style="margin-top:10px">Create a customer account</button>
+      </form>
+      <form id="customer-signup-form" hidden>
+        <h3>Create customer account</h3>
+        <label for="signup-name">Name</label>
+        <input id="signup-name" name="name" autocomplete="name" required maxlength="120">
+        <label for="signup-email">Email</label>
+        <input id="signup-email" name="email" type="email" autocomplete="email" required maxlength="254">
+        <label for="signup-password">Password (12 characters minimum)</label>
+        <input id="signup-password" name="password" type="password" autocomplete="new-password" required minlength="12" maxlength="256">
+        <label for="signup-password-confirm">Confirm password</label>
+        <input id="signup-password-confirm" name="password_confirm" type="password" autocomplete="new-password" required minlength="12" maxlength="256">
+        <button class="form-button" type="submit">Create customer account</button>
+        <button id="back-to-customer-login" class="secondary" type="button" style="margin-top:10px">Back to customer login</button>
+      </form>
+      <form id="admin-login-form" hidden>
+        <h3>Support admin</h3>
+        <p class="meta">There is no admin sign-up. The project administrator creates an account with <code>python -m supportai.manage_auth</code> in the VS Code terminal.</p>
+        <label for="admin-login-email">Admin email</label>
+        <input id="admin-login-email" name="email" type="email" autocomplete="username" required maxlength="254">
+        <label for="admin-login-password">Password</label>
+        <input id="admin-login-password" name="password" type="password" autocomplete="current-password" required maxlength="256">
+        <button class="form-button" type="submit">Sign in as admin</button>
+      </form>
+    </div>
+    <p id="auth-error" class="error" role="alert"></p>
+  </section>
+  <main id="app-main" style="display:none">
+    <section id="global-dashboard" class="wide">
+      <h2>Global support dashboard</h2>
+      <p class="empty">Choose a domain to open its support workspace, or view every domain in the global queue.</p>
+      <div id="domain-cards" class="domain-grid"></div>
+    </section>
+    <section>
+      <h2>Create a ticket</h2>
+      <form id="ticket-form">
+        <label for="customer-name">Customer name</label>
+        <input id="customer-name" name="customer_name" required maxlength="120" placeholder="Alex Morgan">
+        <label for="ticket-domain">Support domain</label>
+        <select id="ticket-domain" name="domain" required style="width:100%;border:1px solid #cbd3df;border-radius:7px;padding:10px;font:inherit"></select>
+        <label for="reference-id">Order, booking, or case reference (optional)</label>
+        <input id="reference-id" name="reference_id" maxlength="100" placeholder="For example, order number">
+        <p class="meta">Do not enter passwords, payment card details, or sensitive health information.</p>
+        <label for="message">What happened?</label>
+        <textarea id="message" name="message" required maxlength="4000" placeholder="Describe the customer's issue..."></textarea>
+        <button class="form-button" type="submit">Create and triage</button>
+        <div id="form-error" class="error" role="alert"></div>
+      </form>
+    </section>
+    <section>
+      <div class="queue-toolbar">
+        <h2 id="queue-title" style="margin-bottom:0">All support requests</h2>
+        <select id="domain-filter" aria-label="Filter tickets by domain"></select>
+        <button id="refresh" class="secondary" type="button">Refresh</button>
+      </div>
+      <div class="queue-filters">
+        <input id="ticket-search" type="search" placeholder="Search customer, ticket ID, or issue" aria-label="Search tickets">
+        <select id="urgency-filter" aria-label="Filter by urgency">
+          <option value="all">All urgencies</option><option value="critical">Critical</option><option value="high">High</option><option value="normal">Normal</option><option value="low">Low</option>
+        </select>
+        <select id="resolution-filter" aria-label="Filter by resolution status">
+          <option value="all">All resolutions</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option>
+        </select>
+        <select id="status-filter" aria-label="Filter by ticket status">
+          <option value="all">All ticket statuses</option><option value="open">Open</option><option value="in_progress">In progress</option><option value="waiting_on_customer">Waiting on customer</option><option value="escalated">Escalated</option><option value="resolved">Resolved</option><option value="closed">Closed</option>
+        </select>
+      </div>
+      <div id="domain-workspace"></div>
+      <div id="feedback" class="feedback"><p class="empty">Loading quality summary...</p></div>
+      <div id="ticket-list" style="margin-top:18px"><p class="empty">Loading tickets...</p></div>
+      <div id="plan"></div>
+    </section>
+  </main>
+  <script>
+    const list = document.querySelector('#ticket-list');
+    const errorBox = document.querySelector('#form-error');
+    const planBox = document.querySelector('#plan');
+    const feedbackBox = document.querySelector('#feedback');
+    const domainCards = document.querySelector('#domain-cards');
+    const domainWorkspace = document.querySelector('#domain-workspace');
+    const domainFilter = document.querySelector('#domain-filter');
+    const ticketDomain = document.querySelector('#ticket-domain');
+    const queueTitle = document.querySelector('#queue-title');
+    const ticketSearch = document.querySelector('#ticket-search');
+    const urgencyFilter = document.querySelector('#urgency-filter');
+    const resolutionFilter = document.querySelector('#resolution-filter');
+    const statusFilter = document.querySelector('#status-filter');
+    const authGate = document.querySelector('#auth-gate');
+    const appMain = document.querySelector('#app-main');
+    const globalDashboard = document.querySelector('#global-dashboard');
+    const feedbackPanel = document.querySelector('#feedback');
+    const sessionControls = document.querySelector('#session-controls');
+    const signedInUser = document.querySelector('#signed-in-user');
+    const headerSubtitle = document.querySelector('#header-subtitle');
+    const customerName = document.querySelector('#customer-name');
+    const customerNameLabel = document.querySelector('label[for="customer-name"]');
+    let domains = [];
+    let zendeskConfigured = false;
+    let selectedDomain = 'all';
+    let currentUser = null;
+    let csrfToken = '';
+    let isAdmin = false;
+
+    function node(tag, text, className) {
+      const el = document.createElement(tag);
+      if (text !== undefined) el.textContent = text;
+      if (className) el.className = className;
+      return el;
+    }
+
+    async function request(url, options) {
+      const requestOptions = { ...(options || {}) };
+      requestOptions.headers = new Headers(requestOptions.headers || {});
+      if (!['GET', 'HEAD'].includes((requestOptions.method || 'GET').toUpperCase()) && csrfToken) {
+        requestOptions.headers.set('X-CSRF-Token', csrfToken);
+      }
+      const response = await fetch(url, requestOptions);
+      const data = await response.json();
+      if (!response.ok) {
+        const error = new Error(data.error || `Request failed (${response.status})`);
+        error.data = data;
+        throw error;
+      }
+      return data;
+    }
+
+    async function submitAuth(form, endpoint, accountType = '') {
+      const values = Object.fromEntries(new FormData(form).entries());
+      const error = document.querySelector('#auth-error');
+      error.textContent = '';
+      try {
+        await request(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...values, ...(accountType ? { account_type: accountType } : {}) })
+        });
+        window.location.reload();
+      } catch (problem) {
+        error.textContent = problem.message;
+      }
+    }
+
+    const customerLoginForm = document.querySelector('#customer-login-form');
+    const customerSignupForm = document.querySelector('#customer-signup-form');
+    const adminLoginForm = document.querySelector('#admin-login-form');
+    customerLoginForm.addEventListener('submit', event => {
+      event.preventDefault(); submitAuth(customerLoginForm, '/auth/login', 'customer');
+    });
+    customerSignupForm.addEventListener('submit', event => {
+      event.preventDefault();
+      const values = new FormData(customerSignupForm);
+      if (values.get('password') !== values.get('password_confirm')) {
+        document.querySelector('#auth-error').textContent = 'Passwords do not match.';
+        return;
+      }
+      submitAuth(customerSignupForm, '/auth/signup');
+    });
+    adminLoginForm.addEventListener('submit', event => {
+      event.preventDefault(); submitAuth(adminLoginForm, '/auth/login', 'admin');
+    });
+    document.querySelector('#show-customer-login').addEventListener('click', () => {
+      customerLoginForm.hidden = false; customerSignupForm.hidden = true; adminLoginForm.hidden = true;
+    });
+    document.querySelector('#show-admin-login').addEventListener('click', () => {
+      customerLoginForm.hidden = true; customerSignupForm.hidden = true; adminLoginForm.hidden = false;
+    });
+    document.querySelector('#show-signup').addEventListener('click', () => {
+      customerLoginForm.hidden = true; customerSignupForm.hidden = false;
+    });
+    document.querySelector('#back-to-customer-login').addEventListener('click', () => {
+      customerLoginForm.hidden = false; customerSignupForm.hidden = true;
+    });
+
+    async function loadFeedback() {
+      try {
+        const report = await request(`/feedback?domain=${encodeURIComponent(selectedDomain)}`);
+        const percent = (value) => value === null ? 'No reviewed data' : `${Math.round(value * 100)}%`;
+        const domainName = domains.find(domain => domain.id === selectedDomain)?.name;
+        feedbackBox.replaceChildren(
+          node('h3', domainName ? `${domainName} quality snapshot` : 'Global quality snapshot'),
+          node('p', `${report.total_tickets} tickets · ${report.triage_reviewed} triage reviews`),
+          node('p', `Triage agreement · category ${percent(report.category_accuracy)} · urgency ${percent(report.urgency_accuracy)}`),
+          node('p', `Resolution drafts reviewed · ${report.resolution_draft_feedback} total · ${report.resolution_unchanged} unchanged · ${report.resolution_edited} edited · ${report.resolution_rejected_with_draft} rejected`),
+          node('p', `Draft quality scores · ${report.quality_scored_reviews} reviewed · unchanged approvals avg ${report.quality_avg_unchanged === null ? '—' : Math.round(report.quality_avg_unchanged)} · edited/rejected avg ${report.quality_avg_corrected_or_rejected === null ? '—' : Math.round(report.quality_avg_corrected_or_rejected)}`)
+        );
+      } catch (error) {
+        feedbackBox.replaceChildren(node('p', `Could not load quality summary: ${error.message}`, 'error'));
+      }
+    }
+
+    async function loadDashboard() {
+      const pending = [loadTickets()];
+      if (isAdmin) pending.push(loadFeedback());
+      await Promise.all(pending);
+    }
+    async function loadTickets() {
+      list.replaceChildren(node('p', 'Loading tickets...', 'empty'));
+      try {
+        const tickets = await request('/tickets?domain=all');
+        if (isAdmin) {
+          renderDomainCards(tickets);
+          renderDomainWorkspace(tickets);
+        }
+        const searchText = ticketSearch.value.trim().toLowerCase();
+        const visibleTickets = tickets.filter(ticket => {
+          const inDomain = selectedDomain === 'all' || ticket.domain === selectedDomain;
+          const matchesUrgency = urgencyFilter.value === 'all' || ticket.urgency === urgencyFilter.value;
+          const matchesResolution = resolutionFilter.value === 'all' || ticket.resolution_status === resolutionFilter.value;
+          const matchesStatus = statusFilter.value === 'all' || ticket.status === statusFilter.value;
+          const searchable = `${ticket.customer_name} ${ticket.id} ${ticket.message} ${ticket.category}`.toLowerCase();
+          return inDomain && matchesUrgency && matchesResolution && matchesStatus && (!searchText || searchable.includes(searchText));
+        });
+        const selected = domains.find(domain => domain.id === selectedDomain);
+        queueTitle.textContent = isAdmin
+          ? (selected ? `${selected.name} support requests` : 'All support requests')
+          : 'My support requests';
+        list.replaceChildren();
+        if (!visibleTickets.length) {
+          list.append(node('p', selected ? `No ${selected.name.toLowerCase()} tickets yet. Create one using the form.` : 'No tickets yet. Create one using the form.', 'empty'));
+          return;
+        }
+        for (const ticket of [...visibleTickets].reverse()) {
+          const card = node('article', undefined, 'ticket');
+          const title = node('div', `${ticket.customer_name} · ${ticket.id.slice(0, 8)}`, 'ticket-title');
+          const badges = node('div', undefined, 'meta');
+          const domainName = domains.find(domain => domain.id === ticket.domain)?.name || ticket.domain;
+          badges.append(node('span', domainName, 'badge'), node('span', ticket.category, 'badge'), node('span', ticket.urgency, 'badge'));
+          const message = node('p', ticket.message, 'ticket-message');
+          const detailText = isAdmin
+            ? `Status: ${ticket.status.replaceAll('_', ' ')} · Team: ${ticket.assigned_team || 'Customer Support'} · First response target: ${ticket.sla_due_at ? new Date(ticket.sla_due_at).toLocaleString() : 'not set'} · First response: ${ticket.first_response_at ? new Date(ticket.first_response_at).toLocaleString() : 'pending'} · Suggested: ${ticket.suggested_category} / ${ticket.suggested_urgency} · Triage: ${ticket.review_status} · Resolution: ${ticket.resolution_status}`
+            : `Status: ${ticket.status.replaceAll('_', ' ')} · Team: ${ticket.assigned_team || 'Customer Support'} · Created: ${new Date(ticket.created_at).toLocaleString()}`;
+          const detail = node('div', detailText, 'meta');
+          const reference = ticket.reference_id ? node('div', `Reference: ${ticket.reference_id}`, 'meta') : null;
+          const statusForm = document.createElement('form');
+          statusForm.className = 'status-form';
+          const statusSelect = document.createElement('select');
+          statusSelect.setAttribute('aria-label', `Ticket status for ${ticket.id.slice(0, 8)}`);
+          const nextStatuses = {
+            open: ['open', 'in_progress', 'waiting_on_customer', 'escalated', 'resolved'],
+            in_progress: ['in_progress', 'open', 'waiting_on_customer', 'escalated', 'resolved'],
+            waiting_on_customer: ['waiting_on_customer', 'open', 'in_progress', 'escalated', 'resolved'],
+            escalated: ['escalated', 'in_progress', 'waiting_on_customer', 'resolved'],
+            resolved: ['resolved', 'open', 'closed'],
+            closed: ['closed', 'open']
+          };
+          for (const value of (nextStatuses[ticket.status] || ['open'])) {
+            const option = node('option', value.replaceAll('_', ' '));
+            option.value = value;
+            statusSelect.append(option);
+          }
+          statusSelect.value = ticket.status;
+          const statusSave = node('button', 'Update status', 'secondary');
+          statusSave.type = 'submit';
+          const statusComment = document.createElement('input');
+          statusComment.className = 'status-comment';
+          statusComment.maxLength = 4000;
+          statusComment.required = true;
+          statusComment.placeholder = 'Add a customer update or internal note';
+          const statusVisibility = document.createElement('select');
+          statusVisibility.setAttribute('aria-label', 'Who can see the status update');
+          for (const [value, label] of [['public', 'Customer-visible update'], ['internal', 'Internal note']]) {
+            const option = node('option', label); option.value = value; statusVisibility.append(option);
+          }
+          const statusMessage = node('span', '', 'meta');
+          statusForm.append(statusSelect, statusComment, statusVisibility, statusSave, statusMessage);
+          statusForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            statusSave.disabled = true;
+            statusMessage.textContent = '';
+            try {
+              await request(`/tickets/${encodeURIComponent(ticket.id)}/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: statusSelect.value, comment: statusComment.value, visibility: statusVisibility.value })
+              });
+              await loadTickets();
+            } catch (error) {
+              statusMessage.textContent = error.message;
+              statusMessage.className = 'error';
+            } finally {
+              statusSave.disabled = false;
+            }
+          });
+          const reviewForm = document.createElement('form');
+          reviewForm.className = 'triage-review-form';
+          const categoryLabel = node('label', 'Category');
+          const categorySelect = document.createElement('select');
+          categorySelect.name = 'category';
+          const domainCategories = domains.find(domain => domain.id === ticket.domain)?.categories || ['general'];
+          for (const value of domainCategories) {
+            const option = node('option', value);
+            option.value = value;
+            categorySelect.append(option);
+          }
+          categorySelect.value = ticket.category;
+          categoryLabel.append(categorySelect);
+          const urgencyLabel = node('label', 'Urgency');
+          const urgencySelect = document.createElement('select');
+          urgencySelect.name = 'urgency';
+          for (const value of ['low', 'normal', 'high', 'critical']) {
+            const option = node('option', value);
+            option.value = value;
+            urgencySelect.append(option);
+          }
+          urgencySelect.value = ticket.urgency;
+          urgencyLabel.append(urgencySelect);
+          const noteInput = document.createElement('input');
+          noteInput.name = 'note';
+          noteInput.placeholder = 'Optional correction note';
+          noteInput.value = ticket.reviewer_note || '';
+          const saveReview = node('button', 'Save triage review', 'secondary');
+          saveReview.type = 'submit';
+          const reviewMessage = node('span', '', 'meta');
+          reviewForm.append(categoryLabel, urgencyLabel, noteInput, saveReview, reviewMessage);
+          reviewForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            saveReview.disabled = true;
+            reviewMessage.textContent = '';
+            try {
+              await request(`/tickets/${encodeURIComponent(ticket.id)}/triage-review`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category: categorySelect.value, urgency: urgencySelect.value, note: noteInput.value })
+              });
+              await loadDashboard();
+            } catch (error) {
+              reviewMessage.textContent = error.message;
+              reviewMessage.className = 'error';
+            } finally {
+              saveReview.disabled = false;
+            }
+          });
+          const draftButton = node('button', 'Draft resolution', 'secondary');
+          draftButton.type = 'button';
+          draftButton.addEventListener('click', () => loadPlan(ticket.id));
+          const conversation = node('div', undefined, 'conversation');
+          conversation.append(node('strong', 'Conversation and updates'));
+          for (const entry of ticket.conversation || []) {
+            const item = node('div', undefined, 'conversation-entry');
+            const audience = isAdmin && entry.visibility === 'internal' ? ' · Internal note' : '';
+            item.append(node('div', `${entry.author} · ${new Date(entry.created_at).toLocaleString()}${audience}`, 'meta'));
+            item.append(node('div', entry.body));
+            conversation.append(item);
+          }
+          if (!(ticket.conversation || []).length) conversation.append(node('p', 'No updates yet.', 'meta'));
+          const replyForm = document.createElement('form');
+          replyForm.className = 'conversation-form';
+          const replyInput = document.createElement('input');
+          replyInput.className = 'reply-comment';
+          replyInput.maxLength = 4000;
+          replyInput.required = true;
+          replyInput.placeholder = isAdmin ? 'Write a reply or internal note' : 'Write a reply to support';
+          const replyVisibility = document.createElement('select');
+          if (isAdmin) {
+            for (const [value, label] of [['public', 'Reply to customer'], ['internal', 'Internal note']]) {
+              const option = node('option', label); option.value = value; replyVisibility.append(option);
+            }
+          }
+          const replyButton = node('button', isAdmin ? 'Add comment' : 'Reply to support');
+          replyButton.type = 'submit';
+          replyForm.append(replyInput);
+          if (isAdmin) replyForm.append(replyVisibility);
+          replyForm.append(replyButton);
+          replyForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            replyButton.disabled = true;
+            try {
+              await request(`/tickets/${encodeURIComponent(ticket.id)}/messages`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: replyInput.value, visibility: isAdmin ? replyVisibility.value : 'public' })
+              });
+              await loadTickets();
+            } catch (error) {
+              conversation.append(node('p', error.message, 'error'));
+            } finally {
+              replyButton.disabled = false;
+            }
+          });
+          conversation.append(replyForm);
+          card.append(title, badges, message, detail, conversation);
+          if (reference) card.insertBefore(reference, conversation);
+          if (isAdmin) card.append(statusForm, reviewForm, draftButton);
+          list.append(card);
+        }
+      } catch (error) {
+        list.replaceChildren(node('p', error.message, 'error'));
+      }
+    }
+
+    function renderDomainCards(tickets) {
+      if (!isAdmin) return;
+      domainCards.replaceChildren();
+      const allButton = node('button', undefined, `domain-card${selectedDomain === 'all' ? ' active' : ''}`);
+      allButton.type = 'button';
+      const allTitle = node('strong', 'All domains');
+      const allDescription = node('span', 'Global view across every support team.');
+      const allCount = node('span', `${tickets.length} current requests`, 'count');
+      allButton.append(allTitle, allDescription, allCount);
+      allButton.addEventListener('click', () => selectDomain('all'));
+      domainCards.append(allButton);
+      for (const domain of domains) {
+        const count = tickets.filter(ticket => ticket.domain === domain.id).length;
+        const button = node('button', undefined, `domain-card${selectedDomain === domain.id ? ' active' : ''}`);
+        button.type = 'button';
+        button.append(node('strong', domain.name), node('span', domain.description), node('span', `${count} current requests`, 'count'));
+        button.addEventListener('click', () => selectDomain(domain.id));
+        domainCards.append(button);
+      }
+    }
+
+    function renderDomainWorkspace(tickets) {
+      if (!isAdmin) return;
+      const domain = domains.find(item => item.id === selectedDomain);
+      if (!domain) {
+        const open = tickets.filter(ticket => ticket.status === 'open').length;
+        const active = tickets.filter(ticket => ticket.status === 'in_progress').length;
+        const waiting = tickets.filter(ticket => ticket.status === 'waiting_on_customer').length;
+        const escalated = tickets.filter(ticket => ticket.status === 'escalated').length;
+        const resolved = tickets.filter(ticket => ticket.status === 'resolved').length;
+        const closed = tickets.filter(ticket => ticket.status === 'closed').length;
+        domainWorkspace.replaceChildren(
+          node('h3', 'Global workspace'),
+          node('p', `${tickets.length} requests across ${domains.length} domains · ${open} open · ${active} in progress · ${waiting} waiting on customer · ${escalated} escalated · ${resolved} resolved · ${closed} closed`),
+          node('p', 'Ticket status is for internal tracking only; it does not send a customer message.')
+        );
+        return;
+      }
+      const scoped = tickets.filter(ticket => ticket.domain === domain.id);
+      const pending = scoped.filter(ticket => ticket.resolution_status === 'pending').length;
+      const open = scoped.filter(ticket => ticket.status === 'open').length;
+      const waiting = scoped.filter(ticket => ticket.status === 'waiting_on_customer').length;
+      const escalated = scoped.filter(ticket => ticket.status === 'escalated').length;
+      const policyList = node('ul');
+      for (const policy of domain.policies) policyList.append(node('li', policy));
+      domainWorkspace.replaceChildren(
+        node('h3', `${domain.name} workspace`),
+        node('p', `${scoped.length} requests · ${open} open · ${waiting} waiting on customer · ${escalated} escalated · ${pending} awaiting resolution review`),
+        node('p', `Assigned team: ${domain.team || 'Customer Support'}`),
+        node('p', 'Ticket status is for internal tracking only; it does not send a customer message.'),
+        node('p', 'Demo policies applied to this domain:'), policyList
+      );
+    }
+
+    function selectDomain(domainId) {
+      selectedDomain = domainId;
+      domainFilter.value = domainId;
+      if (domainId !== 'all') ticketDomain.value = domainId;
+      loadDashboard();
+    }
+
+    async function loadPlan(ticketId) {
+      planBox.style.display = 'block';
+      planBox.replaceChildren(node('p', 'Preparing draft...', 'empty'));
+      try {
+        const ticket = await request(`/tickets/${encodeURIComponent(ticketId)}`);
+        const draftingMode = ticket.domain === 'healthcare' ? 'Preparing a local healthcare-safe draft...' : 'Preparing a draft (Gemini may take up to 60 seconds)...';
+        planBox.replaceChildren(node('p', draftingMode, 'empty'));
+        const result = await request(`/tickets/${encodeURIComponent(ticketId)}/resolution`);
+        const plan = result.plan;
+        const originalDraft = plan.customer_reply;
+        planBox.replaceChildren();
+        planBox.append(node('h3', `Draft plan · ${plan.domain_name} · ${plan.customer_name}`));
+        planBox.append(node('p', `Issue: ${plan.issue}`));
+        planBox.append(node('p', 'Suggested actions'));
+        const actions = node('ul');
+        for (const action of plan.actions) actions.append(node('li', action));
+        planBox.append(actions);
+        planBox.append(node('p', 'Information to collect'));
+        const questions = node('ul');
+        for (const question of plan.questions) questions.append(node('li', question));
+        if (!plan.questions.length) questions.append(node('li', 'No specific questions found.'));
+        planBox.append(questions);
+        planBox.append(node('p', `Draft customer reply (${plan.reply_source}; edit before approval if needed)`));
+        const replyEditor = document.createElement('textarea');
+        replyEditor.className = 'draft-editor';
+        replyEditor.value = originalDraft;
+        replyEditor.setAttribute('aria-label', 'Customer reply draft');
+        planBox.append(replyEditor);
+        planBox.append(node('p', 'Sources'));
+        const sources = node('ul');
+        for (const source of plan.sources) sources.append(node('li', source));
+        if (!plan.sources.length) sources.append(node('li', 'No matching support articles.'));
+        planBox.append(sources);
+        if (plan.reply_warning) planBox.append(node('p', plan.reply_warning, 'meta'));
+        const policyFlags = result.policy_review.findings || [];
+        const blockingFlags = result.policy_review.blocking_findings || [];
+        const policyText = policyFlags.length
+          ? `Policy review: ${policyFlags.join(' ')}${blockingFlags.length ? ` Approval blocked until fixed: ${blockingFlags.join(' ')}` : ''}`
+          : 'Policy review: no configured rules triggered. Human approval is still required.';
+        planBox.append(node('p', policyText, blockingFlags.length ? 'error' : 'meta'));
+        const agentPanel = node('div', undefined, 'feedback');
+        agentPanel.append(node('h3', 'Specialist agent run'));
+        const agentList = node('ul');
+        for (const agent of result.agent_trace || []) {
+          agentList.append(node('li', `${agent.agent} · ${agent.status} · ${agent.detail}`));
+        }
+        agentPanel.append(agentList);
+        planBox.append(agentPanel);
+        const quality = result.quality;
+        const qualityPanel = node('div', undefined, 'feedback');
+        qualityPanel.append(node('h3', `Draft quality indicators · ${quality.score}/100 (heuristic)`));
+        const qualityChecks = node('ul');
+        const qualityLabels = {
+          knowledge_support: 'Supported by a knowledge source',
+          actionable_next_step: 'Includes an actionable next step',
+          customer_ready_reply: 'Reply has a customer-ready greeting and sufficient detail',
+          policy_safe: 'No promise or sensitive-data policy flag'
+        };
+        for (const [key, label] of Object.entries(qualityLabels)) {
+          qualityChecks.append(node('li', `${quality.checks[key] ? '✓' : 'Needs review'} · ${label}`));
+        }
+        qualityPanel.append(qualityChecks);
+        if (quality.notes.length) {
+          const qualityNotes = node('ul');
+          for (const note of quality.notes) qualityNotes.append(node('li', note));
+          qualityPanel.append(qualityNotes);
+        }
+        qualityPanel.append(node('p', 'This checklist helps agents review drafts; it does not guarantee correctness.', 'meta'));
+        planBox.append(qualityPanel);
+        if (result.policy_review.escalation_recommended && !['escalated', 'resolved', 'closed'].includes(ticket.status)) {
+          const escalationBox = node('div', undefined, 'feedback');
+          escalationBox.append(node('strong', 'Escalation recommended'));
+          const reasons = node('ul');
+          for (const reason of result.policy_review.escalation_reasons) reasons.append(node('li', reason));
+          escalationBox.append(reasons);
+          const escalate = node('button', 'Mark ticket escalated', 'secondary');
+          escalate.type = 'button';
+          escalate.addEventListener('click', async () => {
+            escalate.disabled = true;
+            try {
+              await request(`/tickets/${encodeURIComponent(ticketId)}/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'escalated', comment: 'We are routing this case to a specialist for review.', visibility: 'public' })
+              });
+              await loadDashboard();
+              escalationBox.append(node('p', 'Ticket marked escalated.', 'meta'));
+            } catch (error) {
+              escalationBox.append(node('p', error.message, 'error'));
+              escalate.disabled = false;
+            }
+          });
+          escalationBox.append(escalate);
+          planBox.append(escalationBox);
+        }
+        const reviewActions = node('div');
+        reviewActions.style.display = 'flex';
+        reviewActions.style.flexWrap = 'wrap';
+        reviewActions.style.gap = '8px';
+        const approve = node('button', 'Approve reply');
+        approve.type = 'button';
+        approve.addEventListener('click', () => submitReview(ticketId, 'approve', replyEditor.value, '', originalDraft, quality));
+        const editApprove = node('button', 'Save edited reply', 'secondary');
+        editApprove.type = 'button';
+        editApprove.addEventListener('click', () => submitReview(ticketId, 'edit', replyEditor.value, '', originalDraft, quality));
+        const reject = node('button', 'Reject draft', 'secondary');
+        reject.type = 'button';
+        reject.addEventListener('click', async () => {
+          const reason = prompt('Why are you rejecting this draft?');
+          if (reason === null) return;
+          await submitReview(ticketId, 'reject', '', reason, originalDraft, quality);
+        });
+        reviewActions.append(approve, editApprove, reject);
+        planBox.append(reviewActions);
+        if (zendeskConfigured && ticket.resolution_status === 'approved' && isAdmin) {
+          appendZendeskSync(planBox, ticketId, ticket.zendesk_ticket_id || '');
+        }
+        planBox.append(node('p', 'Approval saves the reply for an agent. It does not send a message.', 'meta'));
+      } catch (error) {
+        planBox.replaceChildren(node('p', error.message, 'error'));
+      }
+    }
+
+    async function submitReview(ticketId, action, reply, note = '', draftReply = '', quality = null) {
+      try {
+        const ticket = await request(`/tickets/${encodeURIComponent(ticketId)}/resolution-review`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, reply, note, draft_reply: draftReply, quality })
+        });
+        await loadDashboard();
+        const status = node('p', `Resolution ${ticket.resolution_status}. No message was sent.`, 'meta');
+        planBox.append(status);
+        if (action !== 'reject' && zendeskConfigured && isAdmin) appendZendeskSync(planBox, ticketId, ticket.zendesk_ticket_id || '');
+      } catch (error) {
+        const message = node('p', error.message, 'error');
+        if (error.data?.blocking_findings?.length) {
+          const reasons = node('ul');
+          for (const reason of error.data.blocking_findings) reasons.append(node('li', reason));
+          planBox.append(message, reasons);
+        } else planBox.append(message);
+      }
+    }
+
+    function appendZendeskSync(container, ticketId, externalId) {
+      const box = node('div', undefined, 'feedback');
+      if (externalId) {
+        box.append(node('p', `Zendesk internal ticket created · #${externalId}`, 'meta'));
+      } else {
+        const button = node('button', 'Create Zendesk internal ticket', 'secondary');
+        button.type = 'button';
+        button.addEventListener('click', async () => {
+          button.disabled = true;
+          try {
+            const result = await request(`/tickets/${encodeURIComponent(ticketId)}/zendesk`, { method: 'POST' });
+            box.replaceChildren(node('p', `Zendesk internal ticket created · #${result.zendesk_ticket_id}`, 'meta'));
+          } catch (error) {
+            box.append(node('p', error.message, 'error'));
+            button.disabled = false;
+          }
+        });
+        box.append(button, node('p', 'Creates a Zendesk ticket with a private note; it never sends a customer message.', 'meta'));
+      }
+      container.append(box);
+    }
+
+    document.querySelector('#ticket-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      errorBox.textContent = '';
+      const formElement = event.currentTarget;
+      const form = new FormData(formElement);
+      const submit = formElement.querySelector('button[type="submit"]');
+      submit.disabled = true;
+      try {
+        await request('/tickets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customer_name: form.get('customer_name'), message: form.get('message'), domain: form.get('domain'), reference_id: form.get('reference_id') })
+        });
+        formElement.reset();
+        ticketDomain.value = 'ecommerce';
+        if (!isAdmin) customerName.value = currentUser.name;
+        planBox.style.display = 'none';
+        await loadDashboard();
+      } catch (error) {
+        errorBox.textContent = error.message;
+      } finally {
+        submit.disabled = false;
+      }
+    });
+
+    document.querySelector('#refresh').addEventListener('click', loadDashboard);
+    domainFilter.addEventListener('change', () => selectDomain(domainFilter.value));
+    ticketSearch.addEventListener('input', loadTickets);
+    urgencyFilter.addEventListener('change', loadTickets);
+    resolutionFilter.addEventListener('change', loadTickets);
+    statusFilter.addEventListener('change', loadTickets);
+    async function initialize() {
+      const config = await request('/auth/config');
+      zendeskConfigured = config.zendesk_configured === true;
+      document.querySelector('#auth-description').textContent = ['dev', 'password'].includes(config.mode)
+        ? 'Customers can create an account. Support admins sign in with an account provisioned by the project administrator.'
+        : 'Continue with your organization account.';
+      try {
+        currentUser = await request('/auth/me');
+      } catch (error) {
+        authGate.hidden = false;
+        document.querySelector('#sso-login').hidden = config.mode !== 'oidc';
+        document.querySelector('#local-auth').hidden = !['dev', 'password'].includes(config.mode);
+        return;
+      }
+      csrfToken = currentUser.csrf_token;
+      isAdmin = currentUser.role === 'admin';
+      authGate.hidden = true;
+      appMain.style.display = 'grid';
+      sessionControls.hidden = false;
+      sessionControls.style.display = 'flex';
+      signedInUser.textContent = `${currentUser.name} · ${isAdmin ? 'Support admin' : 'Customer'}`;
+      globalDashboard.hidden = !isAdmin;
+      feedbackPanel.hidden = !isAdmin;
+      domainWorkspace.hidden = !isAdmin;
+      resolutionFilter.hidden = !isAdmin;
+      if (!isAdmin) {
+        customerNameLabel.textContent = 'Your name';
+        customerName.value = currentUser.name;
+        customerName.readOnly = true;
+        ticketSearch.placeholder = 'Search your ticket ID or issue';
+        headerSubtitle.textContent = 'Create a support request and track its progress.';
+      }
+      domains = await request('/domains');
+      const options = [node('option', 'All domains'), ...domains.map(domain => node('option', domain.name))];
+      options[0].value = 'all';
+      domains.forEach((domain, index) => { options[index + 1].value = domain.id; });
+      domainFilter.replaceChildren(...options);
+      const creationOptions = domains.map(domain => {
+        const option = node('option', domain.name);
+        option.value = domain.id;
+        return option;
+      });
+      ticketDomain.replaceChildren(...creationOptions);
+      ticketDomain.value = 'ecommerce';
+      if (!isAdmin) customerName.value = currentUser.name;
+      await loadDashboard();
+    }
+    initialize().catch(error => {
+      authGate.hidden = false;
+      document.querySelector('#auth-error').textContent = `Could not initialize SupportAI: ${error.message}`;
+    });
+    document.querySelector('#logout').addEventListener('click', async () => {
+      try {
+        await request('/auth/logout', { method: 'POST' });
+      } finally {
+        window.location.reload();
+      }
+    });
+  </script>
+</body>
+</html>

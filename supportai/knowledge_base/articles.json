@@ -1,0 +1,150 @@
+[
+  {
+    "id": "shipping-damaged-item",
+    "title": "Item arrived damaged",
+    "category": "shipping",
+    "content": "If an item arrives damaged, ask the customer for the order number and a photo of the damage. Verify the order before arranging a replacement or refund. Do not promise either option until eligibility is confirmed.",
+    "source": "supportai/knowledge_base/shipping.json"
+  },
+  {
+    "id": "shipping-delivery-delay",
+    "title": "Late or missing delivery",
+    "category": "shipping",
+    "content": "For a late delivery, check the tracking status and the estimated delivery date. If tracking has not updated for 48 hours, collect the order number and escalate to the shipping team.",
+    "source": "supportai/knowledge_base/shipping.json"
+  },
+  {
+    "id": "billing-refund-review",
+    "title": "Refund requests",
+    "category": "billing",
+    "content": "Collect the order number and reason for the refund request. Check the purchase date and refund eligibility before confirming a refund. If eligibility is unclear, send the case to a support specialist.",
+    "source": "supportai/knowledge_base/billing.json"
+  },
+  {
+    "id": "account-login-help",
+    "title": "Cannot sign in",
+    "category": "account",
+    "content": "For sign-in problems, confirm the customer can access their registered email and suggest using the password reset flow. Never ask the customer to share their password. Escalate if they suspect unauthorized access.",
+    "source": "supportai/knowledge_base/account.json"
+  },
+  {
+    "id": "food-delivery-late-order",
+    "title": "Late food delivery",
+    "domain": "food_delivery",
+    "category": "delivery",
+    "content": "Check the live order status and the restaurant's estimated preparation and delivery times. If the order is substantially late, collect the order number and confirm whether the customer still wants the order before discussing eligible options.",
+    "source": "SupportAI demo policy: food delivery"
+  },
+  {
+    "id": "food-missing-items",
+    "title": "Missing or incorrect items",
+    "domain": "food_delivery",
+    "category": "missing_items",
+    "content": "Ask which item was missing or incorrect and collect the order number. Compare the report with the order receipt before offering an eligible credit or redelivery. Do not promise compensation before verification.",
+    "source": "SupportAI demo policy: food delivery"
+  },
+  {
+    "id": "food-safety-report",
+    "title": "Food safety or allergy concern",
+    "domain": "food_delivery",
+    "category": "food_quality",
+    "content": "For a reported allergic reaction, illness, or food safety concern, acknowledge the report, collect the order number and affected item, and escalate promptly to the food safety team. Do not provide medical advice. For an emergency, advise contacting local emergency services.",
+    "source": "SupportAI demo policy: food delivery"
+  },
+  {
+    "id": "edtech-course-access",
+    "title": "Cannot access an enrolled course",
+    "domain": "edtech",
+    "category": "course_access",
+    "content": "Confirm the learner's account email, course name, and enrollment status. Ask them to sign out and back in, then retry from the course page. If enrollment is active and access still fails, collect the error message and escalate to technical support.",
+    "source": "SupportAI demo policy: edtech"
+  },
+  {
+    "id": "edtech-live-class",
+    "title": "Live class access or schedule issue",
+    "domain": "edtech",
+    "category": "classes",
+    "content": "Confirm the course, class date, and learner time zone. Check the published class schedule and whether a recording is available. If the live class link is broken, collect the link and error details and escalate to the learning platform team.",
+    "source": "SupportAI demo policy: edtech"
+  },
+  {
+    "id": "edtech-subscription-billing",
+    "title": "Subscription charge or refund request",
+    "domain": "edtech",
+    "category": "payments",
+    "content": "Collect the account email and transaction date, then verify the subscription and billing record. Explain the applicable cancellation and refund policy after verification. Do not promise a refund until eligibility is confirmed.",
+    "source": "SupportAI demo policy: edtech"
+  },
+  {
+    "id": "ecommerce-return-request",
+    "title": "Return or exchange request",
+    "domain": "ecommerce",
+    "category": "returns",
+    "content": "Collect the order number, item, and reason for return. Verify the delivery date, item condition, and return window before explaining the available return or exchange steps. Do not promise a refund until eligibility is confirmed.",
+    "source": "SupportAI demo policy: ecommerce"
+  },
+  {
+    "id": "healthcare-appointment-change",
+    "title": "Appointment scheduling or change",
+    "domain": "healthcare",
+    "category": "appointments",
+    "content": "Use the approved identity verification process before discussing appointment details. Confirm the clinic, appointment date, and requested change, then direct the patient to the authorized scheduling workflow. Escalate urgent clinical questions to qualified clinical staff.",
+    "source": "SupportAI demo policy: healthcare"
+  },
+  {
+    "id": "healthcare-portal-access",
+    "title": "Patient portal access",
+    "domain": "healthcare",
+    "category": "portal_access",
+    "content": "Direct the patient to the organization's approved password reset flow. Follow identity verification procedures before changing access or discussing records. Do not request passwords or detailed medical information in an unsecured support channel; escalate suspected account compromise.",
+    "source": "SupportAI demo policy: healthcare"
+  },
+  {
+    "id": "healthcare-prescription-status",
+    "title": "Prescription refill or status request",
+    "domain": "healthcare",
+    "category": "prescriptions",
+    "content": "Verify identity using approved procedures, then direct prescription status and refill requests to the prescribing clinician or authorized pharmacy workflow. Support staff must not recommend medication changes or provide clinical advice. Escalate urgent medication safety concerns to qualified clinical staff.",
+    "source": "SupportAI demo policy: healthcare"
+  },
+  {
+    "id": "healthcare-urgent-symptoms",
+    "title": "Urgent symptoms or emergency concern",
+    "domain": "healthcare",
+    "category": "general",
+    "content": "If a patient reports chest pain, difficulty breathing, or another immediate emergency, tell them to contact local emergency services now. Do not diagnose or attempt to triage symptoms in customer support. Notify qualified clinical staff through the approved urgent escalation path.",
+    "source": "SupportAI demo policy: healthcare"
+  },
+  {
+    "id": "travel-missed-connection",
+    "title": "Missed connection or itinerary disruption",
+    "domain": "travel",
+    "category": "itinerary_changes",
+    "content": "Collect the booking reference, affected segment, and travel date. Check the current itinerary and applicable fare or carrier conditions, then route urgent disruptions to the travel operations team. Do not promise a rebooking or refund until availability and eligibility are confirmed.",
+    "source": "SupportAI demo policy: travel"
+  },
+  {
+    "id": "travel-lost-baggage",
+    "title": "Delayed or missing baggage",
+    "domain": "travel",
+    "category": "baggage",
+    "content": "Collect the booking reference, baggage tag number, and arrival airport. Direct the traveler to the carrier's baggage tracing process and escalate if they are stranded or need urgent assistance. Do not promise reimbursement before the carrier's rules are checked.",
+    "source": "SupportAI demo policy: travel"
+  },
+  {
+    "id": "telecom-connectivity",
+    "title": "No signal or internet connection",
+    "domain": "telecom",
+    "category": "connectivity",
+    "content": "Collect the service location, affected device, and approximate start time. Check the provider's service status before describing an outage. If no outage is reported, guide the customer through a basic restart and network settings check; escalate persistent issues with the troubleshooting results.",
+    "source": "SupportAI demo policy: telecom"
+  },
+  {
+    "id": "telecom-billing-review",
+    "title": "Unexpected bill or charge",
+    "domain": "telecom",
+    "category": "billing",
+    "content": "Verify the account holder using approved procedures, then collect the bill date and disputed line item. Compare it with the plan and usage record before explaining the charge or applying an eligible credit. Do not promise a credit before review.",
+    "source": "SupportAI demo policy: telecom"
+  }
+]

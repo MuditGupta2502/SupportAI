@@ -1,0 +1,10 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+supportai/tickets.json
+supportai/tickets.tmp
+supportai/auth.sqlite3
+supportai/auth.sqlite3-shm
+supportai/auth.sqlite3-wal
+supportai/chroma_db/

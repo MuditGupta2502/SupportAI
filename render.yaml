@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: supportai
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m supportai.api
+    healthCheckPath: /health
+    envVars:
+      - key: SUPPORTAI_HOST
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPPORTAI_REQUIRE_DATABASE
+        value: "true"
+      - key: SUPPORTAI_AUTH_MODE
+        value: password
+      - key: SUPPORTAI_TRUST_PROXY_HEADERS
+        value: "true"
+      - key: SUPPORTAI_COOKIE_SECURE
+        value: "true"
+      - key: SUPPORTAI_USE_GEMINI
+        value: "true"
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SUPPORTAI_KNOWLEDGE_MODE
+        value: keyword

@@ -1,0 +1,7 @@
+google-genai>=2.0.0,<3.0.0
+python-dotenv
+langgraph>=1.0,<2.0
+authlib>=1.6,<2.0
+chromadb>=1.0,<2.0
+mcp>=2.0,<3.0
+psycopg[binary]>=3.2,<4.0
